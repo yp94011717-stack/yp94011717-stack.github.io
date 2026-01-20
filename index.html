@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>艦隊分署防貪指引手冊小測驗</title>
+    <style>
+        :root {
+            --navy: #003366;
+            --cg-orange: #ff6600;
+            --white: #ffffff;
+            --gray: #f4f4f4;
+            --success: #28a745;
+            --danger: #dc3545;
+            --info: #17a2b8;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            background-color: var(--navy);
+            color: #333;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        #game-box {
+            background-color: var(--white);
+            width: 95%;
+            max-width: 700px;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            transition: all 0.5s ease;
+        }
+
+        h1 { color: var(--navy); margin-bottom: 5px; font-size: 1.8rem; }
+        .subtitle { color: #666; font-size: 1rem; margin-bottom: 30px; }
+
+        .hidden { display: none !important; }
+
+        /* 按鈕樣式 */
+        .btn {
+            background-color: var(--cg-orange);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin: 5px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn:hover { transform: scale(1.05); background-color: #e65c00; }
+        .btn-secondary { background-color: var(--navy); }
+        .btn-next { background-color: var(--info); margin-top: 15px; }
+
+        /* 圖片播放器 */
+        #slideshow-container { position: relative; width: 100%; min-height: 300px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; }
+        .slide-img { max-width: 100%; max-height: 400px; border-radius: 10px; display: none; border: 3px solid var(--navy); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .slide-counter { margin-bottom: 15px; font-weight: bold; color: var(--navy); font-size: 1.2rem; }
+        .nav-controls { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
+
+        /* 題目區 */
+        #question-area { text-align: left; }
+        .q-text { font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; color: var(--navy); line-height: 1.5; }
+        .options { display: grid; gap: 12px; }
+        .option-btn {
+            background: var(--gray);
+            border: 2px solid #ddd;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 1.1rem;
+            line-height: 1.4;
+        }
+        .option-btn:hover:not(:disabled) { background: #e8e8e8; border-color: var(--cg-orange); }
+        .option-btn:disabled { cursor: default; }
+
+        /* 解析區 */
+        #explanation-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: left;
+            background-color: #fff3cd;
+            border: 2px solid #ffeeba;
+            display: none;
+        }
+        .expl-title { font-weight: bold; color: #856404; margin-bottom: 5px; display: block; }
+        .expl-content { font-size: 1rem; color: #533f03; }
+
+        /* 特效層 */
+        #effect-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 10rem;
+        }
+
+        .explode { animation: explodeAnim 0.6s ease-out forwards; }
+        @keyframes explodeAnim {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.8); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .clap { animation: clapAnim 0.8s ease-in-out infinite; }
+        @keyframes clapAnim {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+
+        /* 遊戲背景效果 */
+        .pass-screen { background: linear-gradient(135deg, #ffffff 0%, #e8f5e9 100%) !important; }
+        .fail-screen { background: #2c3e50 !important; color: white !important; }
+        .fail-screen h1, .fail-screen .subtitle, .fail-screen .result-text { color: #ecf0f1 !important; }
+
+        .result-text { font-size: 1.5rem; font-weight: bold; margin: 20px 0; }
+        .score-circle {
+            width: 150px; height: 150px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3.5rem; font-weight: bold; margin: 20px auto;
+            border: 8px solid;
+        }
+
+        /* 慶祝碎片 */
+        .confetti {
+            position: absolute; width: 12px; height: 12px; 
+            animation: confettiDrop 4s linear infinite;
+        }
+        @keyframes confettiDrop {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* 震動效果 */
+        .shake { animation: shakeAnim 0.3s linear; }
+        @keyframes shakeAnim {
+            0% { transform: translate(0); }
+            20% { transform: translate(-10px, 10px); }
+            40% { transform: translate(10px, -10px); }
+            60% { transform: translate(-10px, -10px); }
+            80% { transform: translate(10px, 10px); }
+            100% { transform: translate(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="effect-overlay"></div>
+
+    <div id="game-box">
+        <!-- 初始畫面 -->
+        <div id="screen-start">
+            <h1>艦隊分署<br>防貪指引手冊小測驗</h1>
+            <p class="subtitle">艦隊分署政風室關心您</p>
+            <div style="margin: 30px 0;">
+                <span style="font-size: 5rem;">🛡️</span>
+            </div>
+            <button class="btn" onclick="startSlideshow()">進入測驗導讀</button>
+        </div>
+
+        <!-- 圖片播放畫面 -->
+        <div id="screen-slides" class="hidden">
+            <h2 style="color:var(--navy)">指引手冊重點導讀</h2>
+            <div class="slide-counter"><span id="current-slide-num">1</span> / 7</div>
+            <div id="slideshow-container">
+                <img src="1.png" class="slide-img" alt="手冊1" onerror="this.src='https://via.placeholder.com/600x400?text=手冊導讀+1'">
+                <img src="2.png" class="slide-img" alt="手冊2" onerror="this.src='https://via.placeholder.com/600x400?text=手冊導讀+2'">
+                <img src="3.png" class="slide-img" alt="手冊3" onerror="this.src='https://via.placeholder.com/600x400?text=手冊導讀+3'">
+                <img src="4.png" class="slide-img" alt="手冊4" onerror="this.src='https://via.placeholder.com/600x400?text=手冊導讀+4'">
+                <img src="5.png" class="slide-img" alt="手冊5" onerror="this.src='https://via.placeholder.com/600x400?text=手冊導讀+5'">
+                <img src="6.png" class="slide-img" alt="手冊6" onerror="this.src='https://via.placeholder.com/600x400?text=手冊導讀+6'">
+                <img src="7.png" class="slide-img" alt="手冊7" onerror="this.src='https://via.placeholder.com/600x400?text=手冊導讀+7'">
+            </div>
+            
+            <div class="nav-controls">
+                <button id="prev-btn" class="btn btn-secondary" onclick="changeSlide(-1)">上一張</button>
+                <button id="next-btn" class="btn" onclick="changeSlide(1)">下一張</button>
+            </div>
+            <p style="color:#666; font-size: 0.9rem; margin-top: 15px;">請手動切換閱讀教材內容</p>
+        </div>
+
+        <!-- 測驗題目畫面 -->
+        <div id="screen-quiz" class="hidden">
+            <div style="display:flex; justify-content: space-between; color: var(--navy); font-weight:bold; margin-bottom: 10px;">
+                <span>進度: <span id="q-progress">1</span> / 20</span>
+                <span>得分: <span id="current-score">0</span></span>
+            </div>
+            <div id="question-area">
+                <p class="q-text" id="q-content">題目載入中...</p>
+                <div class="options" id="options-container"></div>
+                <div id="explanation-box">
+                    <span class="expl-title">💡 正確解析：</span>
+                    <p id="expl-text" class="expl-content"></p>
+                </div>
+                <div style="text-align:center;">
+                    <button id="next-q-btn" class="btn btn-next hidden" onclick="proceedToNextQuestion()">下一題</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 成績結算畫面 -->
+        <div id="screen-result" class="hidden">
+            <h1>測驗結束</h1>
+            <div id="score-circle" class="score-circle">0</div>
+            <p id="result-message" class="result-text"></p>
+            <div style="margin-top: 30px;">
+                <button class="btn" onclick="retryQuiz()">再試一次</button>
+                <button class="btn btn-secondary" onclick="goHome()">結束測驗</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questionsData = [
+            { q: "海巡同仁A在接受警方盤查時拒檢逃逸，事後發現其車內有第二級毒品。請問若施用「第二級毒品」（如安非他命、大麻），依法應處以何種刑責？", a: "B", p: "根據資料，施用第二級毒品者，處3年以下有期徒刑。", o: { A: "6個月以上5年以下有期徒刑", B: "3年以下有期徒刑", C: "1萬元以上5萬元以下罰鍰", D: "僅需接受毒品危害講習" } },
+            { q: "關於接觸毒品的風險評估，下列哪項是同仁誤入歧途施用毒品的常見原因？", a: "B", p: "常見原因為誤判毒品成癮性，認為試一次沒關係，導致輕易嘗試而陷入毒癮。", o: { A: "參加公務員法治教育", B: "誤判毒品成癮性，輕易嘗試", C: "尋求正當紓壓管道", D: "拒絕陌生人的飲料" } },
+            { q: "遇到網友以散布私密影像進行勒索（性勒索）時，下列哪項應處程序是錯誤的？", a: "B", p: "應處程序強調要「完整保存證據」，立即截圖或備份對話紀錄，以利後續報案與調查，絕不可刪除。", o: { A: "保持冷靜，切勿妥協", B: "立即刪除所有對話紀錄以消滅證據", C: "完整保存證據（截圖）", D: "立即通報與求助（向單位主管及政風室報告）" } },
+            { q: "為了強化個人資安意識，避免落入網路陷阱，下列行為何者正確？", a: "C", p: "防治措施指出應「絕對禁止傳送任何私密影像」，並避免張貼與公務相關之圖文。", o: { A: "在社群媒體張貼穿著制服的照片以展現帥氣", B: "隨意與網友分享服務單位資訊", C: "絕對禁止傳送任何私密影像", D: "為了安撫網友情緒可以偶爾傳送不雅照" } },
+            { q: "海巡同仁在單位利用公家電腦或自備電腦，使用BT軟體下載電影，除了違反行政規定外，最主要涉及違反什麼法律？", a: "B", p: "利用BT軟體下載電影，涉嫌違反著作權法之重製與散布。", o: { A: "國家安全法", B: "著作權法", C: "毒品危害防制條例", D: "銀行法" } },
+            { q: "為避免公務資料外洩，同仁個人電腦中應如何處理公務資料？", a: "A", p: "同仁個人電腦中應無公務資料與檔案，且仍應避免使用此類軟體，以免造成資安外洩。", o: { A: "應無公務資料與檔案，且仍應避免使用BT類軟體", B: "可以存放但不可以加密", C: "只要安裝防毒軟體就可以隨意存放", D: "存放在D槽即可" } },
+            { q: "同仁A派駐船廠監工，每日提早於18時離開，卻在簽到簿填寫20時退勤。此行為觸犯刑法第213條什麼罪名？", a: "B", p: "明知未服勤時間卻登載於出入登記簿，觸犯刑法第213條公務員登載不實罪。", o: { A: "竊盜罪", B: "公務員登載不實罪", C: "侵占罪", D: "毀損公物罪" } },
+            { q: "關於加班時段的外出規定，下列敘述何者正確？", a: "B", p: "如需外出應先取得主管同意或依規定辦理請假或登記，不可擅自離開。", o: { A: "只要肚子餓就可以隨時外出買晚餐，不用請假", B: "依規定需先取得主管同意或依規定請假（刷卡/登記）", C: "只要事後口頭報告即可", D: "加班時間屬於私人時間，可自由進出" } },
+            { q: "同仁遭遇詐騙後，若僅向派出所備案而未向機關回報，可能會造成什麼風險？", a: "A", p: "防治措施強調務必向隊部通報，以利機關提供及時協助，避免二次遭受詐騙。", o: { A: "機關無法及時提供協助與防詐警示", B: "可以保護個人隱私", C: "派出所會優先處理", D: "歹徒會自動退款" } },
+            { q: "同仁將銀行帳戶提供給詐騙集團使用，導致帳戶被列為「警示帳戶」，這通常意味著同仁可能涉嫌成為什麼角色？", a: "B", p: "提供帳戶供詐團使用，可能涉嫌成為詐騙集團共犯（人頭帳戶）。", o: { A: "普通老百姓", B: "詐騙集團共犯（人頭帳戶）", C: "銀行VIP客戶", D: "榮譽市民" } },
+            { q: "針對離職同仁的邀約，並打聽勤務內容等機敏資料，現職同仁應抱持何種態度？", a: "B", p: "同仁如遇已退離職同仁事邀約飲宴...請提高警覺，切勿因投資機會降低警覺心。", o: { A: "無條件信任", B: "提高警覺，切勿因「好康」降低警覺心", C: "立即答應以維繫感情", D: "邀請更多同事參加" } },
+            { q: "若公務員因職務接觸大陸人士，必須採取什麼行動？", a: "B", p: "因公務或業務需要與大陸人士接觸，必須向服務單位報告，切勿私自聯繫。", o: { A: "私下保持聯絡", B: "向服務單位報告，切勿私自聯繫", C: "邀請對方參觀辦公室", D: "收受對方餽贈" } },
+            { q: "根據《國家安全法》第2條規定，不得為哪些對象刺探、蒐集、交付公務上應秘密之文書？", a: "A", p: "國家安全法規定範圍包括外國、大陸地區、香港、澳門及境外敵對勢力。", o: { A: "外國、大陸地區、香港、澳門、境外敵對勢力", B: "僅限大陸地區", C: "僅限外國", D: "僅限犯罪組織" } },
+            { q: "關於與網友發生親密關係，下列哪項風險觀念是正確的？", a: "B", p: "切勿與未成年人發生性行為，即便當事人同意亦違反刑法第227條。", o: { A: "只要對方外表看起來成年即可", B: "即使雙方合意，若對方未滿16歲仍可能構成犯罪", C: "只要不拍影片就沒事", D: "只要給錢就不算犯罪" } },
+            { q: "兩性交往若遇糾紛，應如何處理較為適當？", a: "B", p: "倘因交友衍生糾紛或遭人恐嚇，切勿私下解決...應向隊部反應並通報警察處理。", o: { A: "私下給付封口費", B: "向隊部反應並尋求法律協助", C: "找兄弟去談判", D: "避不見面" } },
+            { q: "為何特別提醒同仁避免使用 BT 等點對點下載軟體觀看影音檔案？", a: "C", p: "BT 軟體的特性是將硬碟內的資料上傳共享，具備極高的資訊安全外洩風險。", o: { A: "BT 下載會直接導致公務帳號被鎖定", B: "此類軟體會自動偵測並刪除公務文件", C: "下載同時也會上傳，容易造成電腦內資料外洩", D: "政府規定同仁休假期間不得使用電腦下載" } },
+            { q: "根據《國家安全法》第 2 條規定，同仁對於「公務上應秘密資料」的認知應包括哪些範疇？", a: "D", p: "國家安全法規定的範圍廣泛，不僅限國防秘密，亦包含法律規定的行政秘密。", o: { A: "僅限於標註「極機密」以上的軍事文書", B: "已離職同仁所持有的資料即不屬於應秘密範疇", C: "只要不是紙本文件，電子郵件內容皆不在保護範圍內", D: "不僅限於「國防秘密」，亦包含法律規定的「行政秘密」" } },
+            { q: "針對防範「性勒索」與「網路詐騙」，下列哪一項「防治措施」最能落實風險控管？", a: "A", p: "絕對禁止傳送任何私密影像予網友是防範性勒索最根本且直接的安全作為。", o: { A: "絕對禁止傳送任何私密影像予網友", B: "僅在酒後或情緒不穩時才使用匿名軟體聊公事", C: "將所有公務帳號密碼設為相同以方便記憶", D: "與網友互動時，應先要求檢視對方的身分證件" } },
+            { q: "吸食含有「依託咪酯」（喪屍菸彈）的電子菸屬於下列哪種違法行為？", a: "B", p: "依託咪酯已被毒品危害防制條例列為第二級毒品，吸食即屬違法。", o: { A: "只要不在公務場所吸食即不違法", B: "吸食含第二級毒品成分之菸品", C: "屬於合法的心理壓力抒解途徑", D: "僅違反菸害防制法，無刑事或罰鍰責任" } },
+            { q: "洩漏或交付關於中華民國國防以外應秘密之文書，觸犯《刑法》第幾條？", a: "B", p: "《刑法第132條》：洩漏國防以外秘密罪。若是國防秘密則涉及109條。", o: { A: "第109條", B: "第132條", C: "第339條", D: "第213條" } }
+        ];
+
+        let currentQuizQuestions = [];
+        let currentQIndex = 0;
+        let currentSlideIndex = 0;
+        let score = 0;
+
+        // 畫面切換
+        function showScreen(screenId) {
+            document.querySelectorAll('#game-box > div').forEach(div => div.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+            document.getElementById('game-box').classList.remove('shake');
+            document.getElementById('game-box').className = '';
+        }
+
+        // --- 圖片播放邏輯 ---
+        function startSlideshow() {
+            showScreen('screen-slides');
+            currentSlideIndex = 0;
+            updateSlideDisplay();
+        }
+
+        function changeSlide(direction) {
+            const slides = document.querySelectorAll('.slide-img');
+            
+            if (currentSlideIndex === slides.length - 1 && direction === 1) {
+                startQuiz();
+                return;
+            }
+
+            currentSlideIndex += direction;
+            if (currentSlideIndex < 0) currentSlideIndex = 0;
+            if (currentSlideIndex >= slides.length) currentSlideIndex = slides.length - 1;
+            
+            updateSlideDisplay();
+        }
+
+        function updateSlideDisplay() {
+            const slides = document.querySelectorAll('.slide-img');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            
+            slides.forEach((s, i) => {
+                s.style.display = (i === currentSlideIndex) ? 'block' : 'none';
+            });
+            
+            document.getElementById('current-slide-num').innerText = currentSlideIndex + 1;
+            prevBtn.style.visibility = (currentSlideIndex === 0) ? 'hidden' : 'visible';
+            
+            if (currentSlideIndex === slides.length - 1) {
+                nextBtn.innerText = "開始測驗";
+                nextBtn.style.backgroundColor = "var(--success)";
+            } else {
+                nextBtn.innerText = "下一張";
+                nextBtn.style.backgroundColor = "var(--cg-orange)";
+            }
+        }
+
+        // --- 測驗邏輯 ---
+        function startQuiz() {
+            showScreen('screen-quiz');
+            score = 0;
+            currentQIndex = 0;
+            document.getElementById('current-score').innerText = score;
+            currentQuizQuestions = [...questionsData].sort(() => Math.random() - 0.5);
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = currentQuizQuestions[currentQIndex];
+            document.getElementById('q-progress').innerText = currentQIndex + 1;
+            document.getElementById('q-content').innerText = q.q;
+            document.getElementById('explanation-box').style.display = 'none';
+            document.getElementById('next-q-btn').classList.add('hidden');
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            Object.entries(q.o).forEach(([key, value]) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<strong>${key}.</strong> ${value}`;
+                btn.onclick = () => selectOption(key, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function selectOption(choice, selectedBtn) {
+            const q = currentQuizQuestions[currentQIndex];
+            const isCorrect = choice === q.a;
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            // 禁用所有按鈕
+            buttons.forEach(b => b.disabled = true);
+
+            if (isCorrect) {
+                score += 5;
+                document.getElementById('current-score').innerText = score;
+                selectedBtn.style.backgroundColor = "#d4edda";
+                selectedBtn.style.borderColor = "var(--success)";
+                triggerEffect('👏', 'clap');
+                
+                // 答對則短暫停頓後自動下一題
+                setTimeout(() => proceedToNextQuestion(), 1000);
+            } else {
+                selectedBtn.style.backgroundColor = "#f8d7da";
+                selectedBtn.style.borderColor = "var(--danger)";
+                
+                // 標示正確答案
+                buttons.forEach(b => {
+                    if (b.innerText.startsWith(q.a)) {
+                        b.style.border = "3px solid var(--success)";
+                    }
+                });
+
+                triggerEffect('💥', 'explode');
+                document.getElementById('game-box').classList.add('shake');
+                setTimeout(() => document.getElementById('game-box').classList.remove('shake'), 400);
+
+                // 顯示解析
+                showExplanation(q.p);
+            }
+        }
+
+        function showExplanation(text) {
+            const explBox = document.getElementById('explanation-box');
+            const explText = document.getElementById('expl-text');
+            const nextBtn = document.getElementById('next-q-btn');
+            
+            explText.innerText = text;
+            explBox.style.display = 'block';
+            nextBtn.classList.remove('hidden');
+        }
+
+        function proceedToNextQuestion() {
+            currentQIndex++;
+            if (currentQIndex < currentQuizQuestions.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function triggerEffect(emoji, animClass) {
+            const overlay = document.getElementById('effect-overlay');
+            overlay.innerHTML = `<span class="${animClass}">${emoji}</span>`;
+            setTimeout(() => overlay.innerHTML = '', 1000);
+        }
+
+        // --- 成績結算 ---
+        function showResult() {
+            showScreen('screen-result');
+            const box = document.getElementById('game-box');
+            const msg = document.getElementById('result-message');
+            const circle = document.getElementById('score-circle');
+            
+            circle.innerText = score;
+
+            if (score >= 60) {
+                box.classList.add('pass-screen');
+                circle.style.borderColor = 'var(--success)';
+                circle.style.color = 'var(--success)';
+                msg.innerText = "恭喜您!你是清廉的海巡英雄!";
+                createConfetti();
+            } else {
+                box.classList.add('fail-screen');
+                circle.style.borderColor = 'var(--cg-orange)';
+                circle.style.color = 'var(--cg-orange)';
+                msg.innerText = "好可惜~請再次閱讀艦隊分署防貪指引手冊!";
+            }
+        }
+
+        function createConfetti() {
+            const colors = ['#f2d74e', '#95c3de', '#ff9a91', '#f2cf66', '#4897f1'];
+            for (let i = 0; i < 50; i++) {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + 'vw';
+                c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                c.style.animationDelay = Math.random() * 2 + 's';
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 4000);
+            }
+        }
+
+        function retryQuiz() {
+            startSlideshow();
+        }
+
+        function goHome() {
+            showScreen('screen-start');
+        }
+    </script>
+</body>
+</html>
